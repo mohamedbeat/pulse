@@ -1,55 +1,34 @@
 package main
 
-import (
-	"net/http"
-	"time"
-)
+import ()
 
 func main() {
-	ep := Endpoint{
-		Name:            "first",
-		URL:             "http://localhost:9000/health",
-		Method:          MethodGet,
-		Timeout:         1 * time.Second,
-		Interval:        2 * time.Second,
-		ExpectedStatus:  http.StatusOK,
-		MustMatchStatus: true,
-		MaxLatency:      20 * time.Millisecond,
-		Type:            "http",
-		// Headers: ,
-		// BodyContains: ,
-		// BodyRegex: ,
 
+	Info("Initializing ...")
+	config, err := LoadConfig("")
+	if err != nil {
+		panic(err)
 	}
-	ep2 := Endpoint{
-		Name:            "second",
-		URL:             "http://localhost:9000/latency",
-		Method:          MethodGet,
-		Timeout:         1 * time.Second,
-		Interval:        10 * time.Second,
-		ExpectedStatus:  http.StatusOK,
-		MustMatchStatus: true,
-		MaxLatency:      20 * time.Millisecond,
-		Type:            "http",
-		// Headers: ,
-		// BodyContains: ,
-		// BodyRegex: ,
 
-	}
+	Debug("Globals", "Globals", config.Globals)
+	Debug("Config", "config", config)
+
 	httpChecker := NewHTTPChecker()
-	eps := []Endpoint{ep, ep2}
+
 	scheduler := Scheduler{
-		endpoints: eps,
+		endpoints: config.Endpoints,
 		checkers: map[string]Checker{
-			"http": httpChecker,
+			HTTPType: httpChecker,
 		},
 		results: make(chan Result),
 		stop:    make(chan struct{}),
 	}
+
+	//Starting scheduler
 	go scheduler.Start()
 
+	//Getting scheduler results
 	for result := range scheduler.results {
-
 		switch result.Status {
 		case StatusDown, StatusUnreachable:
 			Error("",

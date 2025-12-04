@@ -13,6 +13,7 @@ type Scheduler struct {
 }
 
 func (s *Scheduler) Start() {
+
 	for _, ep := range s.endpoints {
 		go s.runEndpoint(ep) // one goroutine per endpoint
 	}

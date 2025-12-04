@@ -29,14 +29,17 @@ func (h *HTTPChecker) Check(ctx context.Context, endpoint Endpoint) Result {
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, endpoint.Method, endpoint.URL, nil)
+
+	result := Result{
+		URL: endpoint.URL,
+	}
+
 	if err != nil {
-		res := Result{
-			URL:       endpoint.URL,
-			Status:    "error",
-			Error:     err.Error(),
-			Timestamp: time.Now(),
-		}
-		return res
+		result.Status = StatusUnreachable
+		result.Error = err.Error()
+		result.Timestamp = time.Now()
+
+		return result
 	}
 
 	// Add custom headers
@@ -47,10 +50,8 @@ func (h *HTTPChecker) Check(ctx context.Context, endpoint Endpoint) Result {
 	resp, err := h.client.Do(req)
 	elapsed := time.Since(start)
 
-	result := Result{
-		Elapsed:   int(elapsed.Milliseconds()),
-		Timestamp: time.Now(),
-	}
+	result.Elapsed = int(elapsed.Milliseconds())
+	result.Timestamp = time.Now()
 
 	if err != nil {
 		result.Status = StatusUnreachable

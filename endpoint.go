@@ -1,27 +1,71 @@
 package main
 
-import "time"
-
-const (
-	MethodGet   = "GET"
-	MethodPost  = "POST"
-	MethodPatch = "PATCH"
-	MethodPut   = "PUT"
+import (
+	"fmt"
+	"strings"
+	"time"
 )
 
+const (
+	MethodGet    = "GET"
+	MethodPost   = "POST"
+	MethodPatch  = "PATCH"
+	MethodPut    = "PUT"
+	MethodDelete = "DELETE"
+)
+
+var validMethods = map[string]bool{
+	MethodGet:    true,
+	MethodPost:   true,
+	MethodPatch:  true,
+	MethodPut:    true,
+	MethodDelete: true,
+}
+
+// ValidateMethod checks whether m is a valid HTTP method.
+// It returns nil if valid, or an error otherwise.
+func ValidateMethod(m string) error {
+	if m == "" || !validMethods[strings.ToUpper(m)] {
+		return fmt.Errorf("invalid HTTP method: %q", m)
+	}
+	return nil
+}
+
+const (
+	HTTPType = "HTTP"
+)
+
+var validTypes = map[string]bool{
+	HTTPType: true,
+}
+
+// ValidateMethod checks whether Endpoint.Type is a valid HTTP method.
+// It returns nil if valid, or an error otherwise.
+func ValidateType(ep *Endpoint) error {
+	ep.Type = strings.ToUpper(ep.Type)
+	if ep.Type == "" || !validTypes[ep.Type] {
+		return fmt.Errorf("invalid type: %q", ep.Type)
+	}
+	return nil
+}
+
 type Endpoint struct {
-	Name            string            `json:"name" yaml:"name"`
-	URL             string            `json:"url" yaml:"url"`
-	Method          string            `json:"method" yaml:"method"`
-	Timeout         time.Duration     `json:"timeout" yaml:"timeout"`
-	Interval        time.Duration     `json:"interval" yaml:"interval"`
-	Headers         map[string]string `json:"headers,omitempty" yaml:"headers,omitempty"`
-	ExpectedStatus  int               `json:"expected_status" yaml:"expected_status"`
-	MustMatchStatus bool              `json:"must_match_status" yaml:"must_match_status"`
-	Type            string            `json:"type" yaml:"type"` // http, tcp, dns ..
-	BodyContains    string            `json:"body_contains,omitempty" yaml:"body_contains,omitempty"`
-	BodyRegex       string            `json:"body_regex,omitempty" yaml:"body_regex,omitempty"`
-	MaxLatency      time.Duration     `json:"max_latency" yaml:"max_latency"`
+	Name     string            `mapstructure:"name" json:"name" yaml:"name"`
+	URL      string            `mapstructure:"url" json:"url" yaml:"url"`
+	Method   string            `mapstructure:"method" json:"method" yaml:"method"`
+	Timeout  time.Duration     `mapstructure:"timeout" json:"timeout" yaml:"timeout"`
+	Interval time.Duration     `mapstructure:"interval" json:"interval" yaml:"interval"`
+	Headers  map[string]string `mapstructure:"headers" json:"headers,omitempty" yaml:"headers,omitempty"`
+	Type     string            `mapstructure:"type" json:"type" yaml:"type"` // http, tcp, dns
+
+	// For simple cases (backward compatible)
+	ExpectedStatus  int  `mapstructure:"expected_status" json:"expected_status" yaml:"expected_status"`
+	MustMatchStatus bool `mapstructure:"must_match_status" json:"must_match_status" yaml:"must_match_status"`
+
+	// For advanced cases (nested 'expected' block)
+	BodyContains string        `mapstructure:"body_contains" json:"body_contains,omitempty" yaml:"body_contains,omitempty"`
+	BodyRegex    string        `mapstructure:"body_regex" json:"body_regex,omitempty" yaml:"body_regex,omitempty"`
+	MaxLatency   time.Duration `mapstructure:"max_latency" json:"max_latency" yaml:"max_latency"`
 }
 
 // Result.Status
