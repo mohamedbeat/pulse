@@ -3,3 +3,6 @@ build:
 
 run: build
 	@./tmp/main
+
+run-mock:
+	@go run ./mock-server/mock-server.go
