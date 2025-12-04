@@ -3,12 +3,12 @@ package main
 import "context"
 
 type Checker interface {
-	Check(ctx context.Context, ep Endpoint) (Result, error)
+	Check(ctx context.Context, ep Endpoint) Result
 }
 
 type TCPChecker struct{}
 
-func (c *TCPChecker) Check(ctx context.Context, ep Endpoint) (Result, error) {
+func (c *TCPChecker) Check(ctx context.Context, ep Endpoint) Result {
 	panic("TODO")
 }
 

@@ -14,6 +14,14 @@ func main() {
 		// w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, `{"status":"ok","uptime":"10m"}`)
 	})
+	http.HandleFunc("/latency", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(100 * time.Millisecond)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		// w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(w, `{"status":"ok","uptime":"10m"}`)
+	})
 
 	http.HandleFunc("/fail", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)

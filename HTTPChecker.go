@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log/slog"
 	"net/http"
 	"time"
 )
@@ -24,7 +22,7 @@ func NewHTTPChecker() *HTTPChecker {
 	}
 }
 
-func (h *HTTPChecker) Check(ctx context.Context, endpoint Endpoint) (Result, error) {
+func (h *HTTPChecker) Check(ctx context.Context, endpoint Endpoint) Result {
 	start := time.Now()
 
 	ctx, cancel := context.WithTimeout(ctx, endpoint.Timeout)
@@ -32,8 +30,13 @@ func (h *HTTPChecker) Check(ctx context.Context, endpoint Endpoint) (Result, err
 
 	req, err := http.NewRequestWithContext(ctx, endpoint.Method, endpoint.URL, nil)
 	if err != nil {
-
-		return Result{Status: "error", Error: err.Error(), URL: endpoint.URL, Timestamp: time.Now()}, err
+		res := Result{
+			URL:       endpoint.URL,
+			Status:    "error",
+			Error:     err.Error(),
+			Timestamp: time.Now(),
+		}
+		return res
 	}
 
 	// Add custom headers
@@ -42,37 +45,45 @@ func (h *HTTPChecker) Check(ctx context.Context, endpoint Endpoint) (Result, err
 	}
 
 	resp, err := h.client.Do(req)
-	responseTime := time.Since(start).Milliseconds()
+	elapsed := time.Since(start)
 
 	result := Result{
-		ResponseTime: int(responseTime),
-		Timestamp:    time.Now(),
+		Elapsed:   int(elapsed.Milliseconds()),
+		Timestamp: time.Now(),
 	}
 
 	if err != nil {
-		result.Status = "down"
+		result.Status = StatusUnreachable
 		result.Error = err.Error()
-		return result, err
+		return result
 	}
 	defer resp.Body.Close()
 
 	// Check status code
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		result.Status = "up"
+		result.Status = StatusUp
 	} else if resp.StatusCode >= 500 {
-		result.Status = "down"
+		result.Status = StatusDown
 	} else {
-		result.Status = "degraded"
+		result.Status = StatusDegraded
 	}
 	result.StatusCode = resp.StatusCode
-	if endpoint.MustMatchStatus && resp.StatusCode != endpoint.ExpectedStatus {
-		lg := fmt.Sprintf("Unexpected status response: expected %d but got %d\n", endpoint.ExpectedStatus, resp.StatusCode)
-		slog.Warn(lg)
-	}
-	if endpoint.MaxLatency < time.Duration(responseTime) {
-		lg := fmt.Sprintf("Request exceeded max latency: Request took %dms expected %d\n", responseTime, endpoint.MaxLatency.Milliseconds())
-		slog.Warn(lg)
 
+	// Check if resp.StatusCode must match
+	if endpoint.MustMatchStatus && resp.StatusCode != endpoint.ExpectedStatus {
+		// Mark as degraded if status code doesn't match expected strict status.
+		if result.Status == StatusUp {
+			result.Status = StatusDegraded
+			result.Message = UnexpectedStatusCodeMessage
+		}
 	}
-	return result, nil
+
+	if endpoint.MaxLatency > 0 && elapsed > endpoint.MaxLatency {
+		// If we were "up" purely by status code, treat high latency as degraded.
+		if result.Status == StatusUp {
+			result.Status = StatusDegraded
+			result.Message = UnexpectedLatencyMessage
+		}
+	}
+	return result
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"time"
 )
 
@@ -27,11 +26,7 @@ func (s *Scheduler) runEndpoint(ep Endpoint) {
 		select {
 		case <-ticker.C:
 			checker := s.checkers[ep.Type]
-			res, err := checker.Check(context.Background(), ep)
-			if err != nil {
-				log.Println("err", err)
-				log.Println("result", res)
-			}
+			res := checker.Check(context.Background(), ep)
 			s.results <- res
 		case <-s.stop:
 			return

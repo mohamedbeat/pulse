@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"time"
 )
@@ -12,7 +11,22 @@ func main() {
 		URL:             "http://localhost:9000/health",
 		Method:          MethodGet,
 		Timeout:         1 * time.Second,
-		Interval:        5 * time.Second,
+		Interval:        2 * time.Second,
+		ExpectedStatus:  http.StatusOK,
+		MustMatchStatus: true,
+		MaxLatency:      20 * time.Millisecond,
+		Type:            "http",
+		// Headers: ,
+		// BodyContains: ,
+		// BodyRegex: ,
+
+	}
+	ep2 := Endpoint{
+		Name:            "second",
+		URL:             "http://localhost:9000/latency",
+		Method:          MethodGet,
+		Timeout:         1 * time.Second,
+		Interval:        10 * time.Second,
 		ExpectedStatus:  http.StatusOK,
 		MustMatchStatus: true,
 		MaxLatency:      20 * time.Millisecond,
@@ -23,7 +37,7 @@ func main() {
 
 	}
 	httpChecker := NewHTTPChecker()
-	eps := []Endpoint{ep}
+	eps := []Endpoint{ep, ep2}
 	scheduler := Scheduler{
 		endpoints: eps,
 		checkers: map[string]Checker{
@@ -35,7 +49,40 @@ func main() {
 	go scheduler.Start()
 
 	for result := range scheduler.results {
-		log.Println("saving result", result.URL, result.StatusCode, result.StatusCode, result.Timestamp, result.Error, result.Message, result.ResponseTime)
+
+		switch result.Status {
+		case StatusDown, StatusUnreachable:
+			Error("",
+				"url", result.URL,
+				"status", result.Status,
+				"status_code", result.StatusCode,
+				"timestamp", result.Timestamp,
+				"error", result.Error,
+				"message", result.Message,
+				"elapsed", result.Elapsed,
+			)
+		case StatusDegraded:
+			Warn("saving_result",
+				"url", result.URL,
+				"status", result.Status,
+				"status_code", result.StatusCode,
+				"timestamp", result.Timestamp,
+				"error", result.Error,
+				"message", result.Message,
+				"elapsed", result.Elapsed,
+			)
+		default:
+			Info("saving_result",
+				"url", result.URL,
+				"status", result.Status,
+				"status_code", result.StatusCode,
+				"timestamp", result.Timestamp,
+				"error", result.Error,
+				"message", result.Message,
+				"elapsed", result.Elapsed,
+			)
+		}
+
 		// store.Save(result)
 
 		// oldStatus := alertState[result.EndpointID]
@@ -50,23 +97,3 @@ func main() {
 		// }
 	}
 }
-
-// func main() {
-// 	fmt.Println("Pulse !!!!!")
-//
-// 	ctx := context.Background()
-// 	ep := Endpoint{
-// 		URL:             "http://localhost:9000/slow",
-// 		Method:          MethodGet,
-// 		Timeout:         1 * time.Second,
-// 		ExpectedStatus:  http.StatusOK,
-// 		MustMatchStatus: false,
-// 	}
-// 	client := NewHTTPChecker()
-// 	result, err := client.Check(ctx, ep)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	log.Println(result)
-//
-// }
