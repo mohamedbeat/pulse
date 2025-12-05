@@ -1,11 +1,12 @@
 package main
 
-import ()
-
 func main() {
-
 	Info("Initializing ...")
-	config, err := LoadConfig("")
+
+	configPath := ParseFlags()
+	Info("configFile path", "path", configPath)
+
+	config, err := LoadConfig(configPath)
 	if err != nil {
 		panic(err)
 	}
