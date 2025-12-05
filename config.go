@@ -175,6 +175,10 @@ func applyDefaultsToEndpoints(cfg *Config) {
 		if ep.Timeout <= 0 {
 			ep.Timeout = cfg.Globals.Timeout
 		}
+		// Initialize Headers map if nil (Viper may leave it nil if not present in config)
+		if ep.Headers == nil {
+			ep.Headers = make(map[string]string)
+		}
 	}
 }
 

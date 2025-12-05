@@ -9,17 +9,36 @@ import (
 
 func main() {
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		// Log all headers for debugging
+		fmt.Println("=== Request Headers ===")
+		for name, values := range r.Header {
+			fmt.Printf("  %s: %v\n", name, values)
+		}
+		fmt.Println("======================")
+
+		// Check for specific header (case-insensitive)
+		idkHeader := r.Header.Get("Idk") // Go canonicalizes to "Idk"
+		if idkHeader == "" {
+			idkHeader = r.Header.Get("idk") // Try lowercase too
+		}
+		fmt.Printf("Idk header value: %q\n", idkHeader)
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		// w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, `{"status":"ok","uptime":"10m"}`)
 	})
 	http.HandleFunc("/latency", func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(100 * time.Millisecond)
+
+		// Log headers for this endpoint too
+		fmt.Println("=== Latency Request Headers ===")
+		for name, values := range r.Header {
+			fmt.Printf("  %s: %v\n", name, values)
+		}
+		fmt.Println("================================")
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-
-		// w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, `{"status":"ok","uptime":"10m"}`)
 	})
 

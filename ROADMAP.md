@@ -1,173 +1,208 @@
 # Health Check Monitor — Go Project Roadmap
 
 > A robust, extensible health monitoring tool written in Go.  
-> **Status**: Planning  
+> **Status**: In Development  
 > **Target**: Production-ready monitoring solution for services/endpoints.
 
 ---
 
-## Phase 1: Foundation (Week 1–2)
+## Phase 1: Foundation
 
 **Goal**: ✅ Basic working health checker with config and concurrency.
 
-### Week 1
-- [ ] **Project scaffolding**
-  - Define project layout (`cmd/`, `internal/`, `pkg/`, `configs/`)
-  - Set up `main.go` with entrypoint
-- [ ] **Core health check logic**
-  - Single HTTP(S) GET check with timeout
-  - Parse response status code + latency
-  - Basic stdout logging
-- [ ] **Configuration**
-  - YAML config schema (e.g., `config.yaml`)
-  - Load endpoints, intervals, timeouts
-  - Validate required fields
+### Project Structure
+- [x] Set up `main.go` with entrypoint
+- [ ] Define project layout (`cmd/`, `internal/`, `pkg/`, `configs/`)
 
-### Week 2
-- [ ] **Concurrency & scheduling**
-  - Goroutine-based concurrent checks
-  - `time.Ticker` for repeating checks (e.g., `10m`)
-  - Channel-based result aggregation
-- [ ] **Result handling**
-  - Structured `Result` type (status, latency, timestamp, error)
-  - In-memory storage (slice/map)
-  - Basic error recovery (retry once on failure)
+### Core Health Check Logic
+- [x] HTTP(S) GET/POST/PUT/PATCH/DELETE checks with timeout
+- [x] Parse response status code + latency
+- [x] Status code classification (2xx = up, 5xx = down, others = degraded)
+- [x] Structured logging with JSON output
 
-✅ **Phase 1 Deliverable**: CLI tool that monitors 1+ endpoints indefinitely and logs status.
+### Configuration
+- [x] YAML config schema (`pulse.yml`)
+- [x] Load endpoints, intervals, timeouts
+- [x] Validate required fields
+- [x] Global defaults with endpoint overrides
+- [x] Config file path resolution (supports directories and files)
+
+### Concurrency & Scheduling
+- [x] Goroutine-based concurrent checks (one per endpoint)
+- [x] `time.Ticker` for repeating checks per endpoint interval
+- [x] Buffered channel-based result aggregation
+- [ ] Graceful shutdown support (`stop` channel)
+
+### Result Handling
+- [x] Structured `Result` type (status, latency, timestamp, error, message)
+- [x] Status types: `up`, `down`, `unreachable`, `degraded`
+- [ ] In-memory storage (slice/map)
+- [ ] Basic error recovery (retry once on failure)
+
+✅ **Phase 1 Status**: Core functionality complete. CLI tool monitors endpoints indefinitely and logs status.
 
 ---
 
-## Phase 2: Core Features (Week 3–4)
+## Phase 2: Core Features
 
 **Goal**: 🚀 Production-viable with persistence, alerts, and UI.
 
-### Week 3
-- [ ] **Multiple endpoint types**
-  - HTTP/HTTPS (GET, POST, HEAD)
-  - Custom headers & auth (Bearer, Basic)
-  - TCP port checks
-  - Response body matching (regex/string)
-- [ ] **Persistence**
-  - SQLite backend (`/data/monitor.db`)
-  - Schema: `checks`, `endpoints`, `alerts`
-  - Automatic cleanup (retain last 30 days)
-- [ ] **Metrics**
-  - Uptime % calculation
-  - Avg/min/max response time
-  - Downtime duration tracking
+### Multiple Endpoint Types
+- [x] HTTP/HTTPS (GET, POST, PUT, PATCH, DELETE)
+- [x] Custom headers support
+- [x] Expected status code matching (`must_match_status`)
+- [x] Max latency threshold checking
+- [ ] Response body matching (regex/string) - fields exist but not implemented
+- [ ] TCP port checks - stub exists (`TCPChecker`)
+- [ ] DNS lookup checks - stub exists (`DNSChecker`)
 
-### Week 4
-- [ ] **Alerting**
-  - Thresholds (e.g., `3 consecutive failures`)
-  - Recovery detection
-  - Console + email (SMTP) alerts
-- [ ] **Web dashboard**
-  - Embedded HTTP server (`:8080`)
-  - Real-time status page (HTML + minimal JS)
-  - Endpoint list with status badges
+### Advanced HTTP Features
+- [ ] HTTP client pooling & keep-alive (configured in `HTTPChecker`)
+- [x] Per-endpoint timeout configuration
+- [x] Per-endpoint interval configuration
+- [ ] SSL certificate expiry checking (< 30 days)
 
-✅ **Phase 2 Deliverable**: Self-contained binary with SQLite, email alerts, and live dashboard.
+### Persistence
+- [ ] SQLite backend (`/data/monitor.db`)
+- [ ] Schema: `checks`, `endpoints`, `alerts`
+- [ ] Automatic cleanup (retain last 30 days)
+
+### Metrics
+- [ ] Uptime % calculation
+- [ ] Avg/min/max response time
+- [ ] Downtime duration tracking
+
+### Alerting
+- [ ] Thresholds (e.g., `3 consecutive failures`)
+- [ ] Recovery detection
+- [ ] Console alerts (structured logging exists)
+- [ ] Email (SMTP) alerts
+
+### Web Dashboard
+- [ ] Embedded HTTP server (`:8080`)
+- [ ] Real-time status page (HTML + minimal JS)
+- [ ] Endpoint list with status badges
+
+✅ **Phase 2 Status**: HTTP checks with advanced features (headers, latency, status matching) are working. Persistence, metrics, alerts, and dashboard pending.
 
 ---
 
-## Phase 3: Advanced Features (Week 5–6)
+## Phase 3: Advanced Features
 
 **Goal**: 🌐 Enterprise-grade extensibility and integrations.
 
-### Week 5
-- [ ] **Notification integrations**
-  - Slack/Discord webhooks
-  - PagerDuty (v2 Events API)
-  - Custom webhook support
-- [ ] **Configuration enhancements**
-  - Hot-reload on config change (fsnotify)
-  - Env var overrides (`HC_INTERVAL=300s`)
-  - Validate config on load
-- [ ] **Advanced checks**
-  - SSL certificate expiry (< 30 days)
-  - DNS lookup checks
-  - Status code ranges (`2xx`, `3xx`)
+### Notification Integrations
+- [ ] Slack/Discord webhooks
+- [ ] PagerDuty (v2 Events API)
+- [ ] Custom webhook support
 
-### Week 6
-- [ ] **API layer**
-  - REST API (`/api/v1/status`, `/api/v1/history`)
-  - CRUD for endpoints (add/remove/update)
-  - JWT-based authentication
-- [ ] **Performance & resilience**
-  - HTTP client pooling & keep-alive
-  - Circuit breaker for failing endpoints
-  - CPU/memory profiling
+### Configuration Enhancements
+- [ ] Hot-reload on config change (fsnotify)
+- [ ] Env var overrides (`HC_INTERVAL=300s`)
+- [x] Validate config on load
 
-✅ **Phase 3 Deliverable**: API-first monitor with multi-channel alerts and config reload.
+### Advanced Checks
+- [ ] SSL certificate expiry (< 30 days)
+- [ ] DNS lookup checks (stub exists)
+- [ ] Status code ranges (`2xx`, `3xx`) - partially supported via status code ranges
+
+### API Layer
+- [ ] REST API (`/api/v1/status`, `/api/v1/history`)
+- [ ] CRUD for endpoints (add/remove/update)
+- [ ] JWT-based authentication
+
+### Performance & Resilience
+- [ ] HTTP client pooling & keep-alive
+- [ ] Circuit breaker for failing endpoints
+- [ ] CPU/memory profiling
+
+✅ **Phase 3 Status**: Not started. Foundation is in place for extensibility.
 
 ---
 
-## Phase 4: Production Readiness (Week 7–8)
+## Phase 4: Production Readiness
 
 **Goal**: 🛡️ Secure, observable, and deployable.
 
-### Week 7
-- [ ] **Observability**
-  - Prometheus metrics (`/metrics`)
-    - `healthcheck_up`, `healthcheck_latency_seconds`
-  - Structured JSON logging (Zap/Slog)
-  - Tracing (OpenTelemetry)
-- [ ] **Security**
-  - TLS for web/API (`--tls-cert`, `--tls-key`)
-  - RBAC for API/dashboard
-  - Rate limiting (5 req/s per IP)
+### Observability
+- [ ] Prometheus metrics (`/metrics`)
+  - `healthcheck_up`, `healthcheck_latency_seconds`
+- [x] Structured JSON logging (custom logger with JSON output)
+- [ ] Tracing (OpenTelemetry)
 
-### Week 8
-- [ ] **Deployment**
-  - Dockerfile (multi-stage, scratch base)
-  - Helm chart (for Kubernetes)
-  - systemd service template
-- [ ] **Quality & docs**
-  - Test coverage ≥ 80% (unit + integration)
-  - CLI help (`--help`, `--version`)
-  - `README.md` with examples
-  - `docs/` (config reference, API spec)
+### Security
+- [ ] TLS for web/API (`--tls-cert`, `--tls-key`)
+- [ ] RBAC for API/dashboard
+- [ ] Rate limiting (5 req/s per IP)
 
-✅ **Phase 4 Deliverable**: Production-ready, containerized, observable, and documented.
+### Deployment
+- [ ] Dockerfile (multi-stage, scratch base)
+- [ ] Helm chart (for Kubernetes)
+- [ ] systemd service template
+
+### Quality & Docs
+- [ ] Test coverage ≥ 80% (unit + integration)
+- [ ] CLI help (`--help`, `--version`)
+- [ ] `README.md` with examples
+- [ ] `docs/` (config reference, API spec)
+
+✅ **Phase 4 Status**: Not started. Logging infrastructure exists.
 
 ---
 
 ## Milestones & Success Criteria
 
-| Phase | Deadline | Success Criteria |
-|-------|----------|------------------|
-| **1** | Week 2   | ✅ `./health-monitor --config config.yaml` runs indefinitely, checks endpoints, logs to stdout |
-| **2** | Week 4   | ✅ SQLite storage + email alerts + live dashboard on `:8080` |
-| **3** | Week 6   | ✅ API + webhook alerts + config hot-reload |
-| **4** | Week 8   | ✅ Docker image + Prometheus metrics + ≥80% test coverage |
-
----
-
-## Daily Workflow
-
-| Day       | Focus                           |
-|-----------|---------------------------------|
-| **Mon**   | Plan features, review PRs       |
-| **Tue**   | Core implementation             |
-| **Wed**   | Edge cases & error handling     |
-| **Thu**   | Testing + bug fixes             |
-| **Fri**   | Docs + next week prep           |
+| Phase | Status | Success Criteria |
+|-------|--------|------------------|
+| **1** | ✅ Complete | CLI tool runs indefinitely, checks endpoints, logs to stdout |
+| **2** | 🚧 In Progress | SQLite storage + email alerts + live dashboard on `:8080` |
+| **3** | 📋 Planned | API + webhook alerts + config hot-reload |
+| **4** | 📋 Planned | Docker image + Prometheus metrics + ≥80% test coverage |
 
 ---
 
 ## Tech Stack
 
-| Component       | Choice                          |
-|-----------------|---------------------------------|
-| Language        | Go                              |
-| Config          | YAML (Viper)                    |
-| Storage         | SQLite (embedded)               |
-| Web Server      | `net/http`                      |
-| CLI             | `urfave/cli/v2`                 |
-| Logging         | `log/slog`                      |
-| Testing         | `testify`, `httpexpect`         |
-| Build           | Go modules + `goreleaser` (v2)  |
+| Component       | Choice                          | Status        |
+|-----------------|---------------------------------|---------------|
+| Language        | Go                              | ✅            |
+| Config          | YAML (Viper)                    | ✅            |
+| Storage         | No yet                          | 📋 Planned    |
+| Web Server      | `net/http`                      | 📋 Planned    |
+| CLI             | `flag` (standard library)       | ✅            |
+| Logging         | Custom JSON logger              | ✅            |
+| Testing         | `testify`, `httpexpect`         | 📋 Planned    |
+| Build           | Go modules                      | ✅            |
 
 ---
 
-> 📝 **Tip**: Start small—even Phase 1 is valuable! Iterate fast, ship often.
+## Current Implementation Status
+
+### ✅ Completed Features
+- HTTP health checks with multiple methods (GET, POST, PUT, PATCH, DELETE)
+- YAML configuration with validation
+- Concurrent endpoint monitoring with goroutines
+- Per-endpoint intervals and timeouts
+- Custom headers support
+- Status code classification and strict matching
+- Max latency threshold detection
+- Structured JSON logging
+- Buffered result channels
+
+### 🚧 In Progress / Partially Complete
+- Response body matching (fields defined, implementation pending)
+- TCP/DNS checkers (stubs exist, implementation pending)
+
+### 📋 Planned Features
+- Persistence layer (SQLite)
+- Metrics and uptime tracking
+- Alerting system
+- Web dashboard
+- API layer
+- Additional notification channels
+- Deployment tooling
+- Comprehensive testing
+
+---
+
+> 📝 **Note**: The project has a solid foundation with core HTTP monitoring capabilities. Focus areas for next steps: persistence, alerting, and dashboard.

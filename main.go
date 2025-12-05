@@ -16,12 +16,19 @@ func main() {
 
 	httpChecker := NewHTTPChecker()
 
+	// Buffer size: at least 10, or 2x the number of endpoints (whichever is larger)
+	// This handles bursts when multiple endpoints complete checks simultaneously
+	bufferSize := len(config.Endpoints) * 2
+	if bufferSize < 10 {
+		bufferSize = 10
+	}
+
 	scheduler := Scheduler{
 		endpoints: config.Endpoints,
 		checkers: map[string]Checker{
 			HTTPType: httpChecker,
 		},
-		results: make(chan Result),
+		results: make(chan Result, bufferSize),
 		stop:    make(chan struct{}),
 	}
 

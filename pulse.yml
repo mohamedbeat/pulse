@@ -11,21 +11,35 @@ endpoints:
     type: "http"
     interval: 3s
     timeout: 1s
+    headers:
+      Idk: "Bearer your-token-here"
 
-  - name: "slow service"
-    url: "http://localhost:9000/slow"
-    interval: 3s
-    timeout: 1s
-    method: "GET"
-    type: "http"
+  # - name: "slow service"
+  #   url: "http://localhost:9000/slow"
+  #   interval: 3s
+  #   timeout: 1s
+  #   method: "GET"
+  #   type: "http"
+    #
+  # - name: "latency service"
+  #   url: "http://localhost:9000/latency"
+  #   interval: 3s
+  #   timeout: 3s
+  #   method: "GET"
+  #   type: "http"
+  #   max_latency: 50ms
 
-  - name: "latency service"
-    url: "http://localhost:9000/latency"
-    interval: 3s
-    timeout: 3s
-    method: "GET"
-    type: "http"
-    max_latency: 50ms
+  # Example endpoint with custom headers
+  # - name: "API Service with Auth"
+  #   url: "https://api.example.com/health"
+  #   method: "GET"
+  #   type: "http"
+  #   interval: 30s
+  #   timeout: 10s
+  #   headers:
+  #     Authorization: "Bearer your-token-here"
+  #     Content-Type: "application/json"
+  #     X-Custom-Header: "custom-value"
 
 
     # must_match_status: true
