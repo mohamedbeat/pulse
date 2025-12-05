@@ -1,5 +1,12 @@
 package main
 
+import (
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
+
 func main() {
 	Info("Initializing ...")
 
@@ -19,9 +26,7 @@ func main() {
 	// Buffer size: at least 10, or 2x the number of endpoints (whichever is larger)
 	// This handles bursts when multiple endpoints complete checks simultaneously
 	bufferSize := len(config.Endpoints) * 2
-	if bufferSize < 10 {
-		bufferSize = 10
-	}
+	bufferSize = max(bufferSize, 10)
 
 	scheduler := Scheduler{
 		endpoints: config.Endpoints,
@@ -31,6 +36,26 @@ func main() {
 		results: make(chan Result, bufferSize),
 		stop:    make(chan struct{}),
 	}
+
+	// Setup graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	// Run a goroutine that will close the results channel when scheduler stops
+	// This will break the for-loop below
+	go func() {
+		<-quit // Wait for shutdown signal
+		Info("Shutdown signal received")
+
+		// Stop the scheduler (this closes s.stop channel)
+		scheduler.Stop()
+
+		// Give a moment for any final results to come through
+		// Wait for all endpoint goroutines to finish
+		time.Sleep(1 * time.Second)
+
+		// Close the results channel to break the for-loop
+		close(scheduler.results)
+	}()
 
 	//Starting scheduler
 	go scheduler.Start()
@@ -69,6 +94,8 @@ func main() {
 				"elapsed", result.Elapsed,
 			)
 		}
+
+		Info("Shutdown complete")
 
 		// store.Save(result)
 

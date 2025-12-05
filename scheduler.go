@@ -58,8 +58,11 @@ func (s *Scheduler) runEndpoint(ep Endpoint) {
 			}
 			res := checker.Check(context.Background(), ep)
 			s.results <- res
-		case <-s.stop:
+		case <-s.stop: // in this case we stop
 			return
 		}
 	}
+}
+func (s *Scheduler) Stop() {
+	close(s.stop) // Signal all goroutines to stop
 }
