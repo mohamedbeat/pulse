@@ -2,7 +2,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![WIP](https://img.shields.io/badge/status-under_development-yellow)
 
-> A robust, extensible health monitoring tool written in Go.  
+A robust, extensible health monitoring tool written in Go.  
 > **Status**: In Development  
 > **Target**: Production-ready monitoring solution for services/endpoints.
 
