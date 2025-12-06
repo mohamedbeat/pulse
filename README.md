@@ -29,6 +29,8 @@ Pulse is a high-concurrency health monitoring daemon in Go that actively probes 
 - Max latency threshold detection
 - Structured JSON logging
 - Buffered result channels
+- Retry mechanism 
+
 
 ### 📋 Planned Features
 - Response body matching (fields defined, implementation pending)
