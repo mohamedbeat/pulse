@@ -72,4 +72,5 @@ Star the project to show your support.
 
 Watch this repo for releases.
 
-C
+Check [ROADMAP.md](ROADMAP.md) for progress updates
+
