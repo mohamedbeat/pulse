@@ -179,6 +179,10 @@ func applyDefaultsToEndpoints(cfg *Config) {
 		if ep.Headers == nil {
 			ep.Headers = make(map[string]string)
 		}
+		fmt.Println("ep.Retry ", ep.Retry)
+
+		// setting endpoint Retry counter state
+		ep.RetryCounter = ep.Retry
 	}
 }
 
@@ -197,7 +201,7 @@ func validateEndpoints(cfg *Config) error {
 			if err := ValidateMethod(ep.Method); err != nil {
 				return fmt.Errorf("invalid provided method for endpoint %d: %w", i, err)
 			}
-
+			// validate URL
 			if ep.URL == "" {
 				return fmt.Errorf("invalid provided URL for endpoint %d: URL is required", i)
 			}
@@ -211,6 +215,11 @@ func validateEndpoints(cfg *Config) error {
 		// Validate timeout
 		if ep.Timeout == 0 {
 			return fmt.Errorf("invalid provided timeout for endpoint %d: must be greater than 0", i)
+		}
+
+		// Validate retry
+		if ep.Retry < 0 {
+			return fmt.Errorf("invalid provided retry for endpoint %d: must be greater than 0", i)
 		}
 	}
 

@@ -44,14 +44,13 @@ func (h *HTTPChecker) Check(ctx context.Context, endpoint Endpoint) Result {
 
 	// Add custom headers
 	if len(endpoint.Headers) > 0 {
-		Debug("Setting headers", "endpoint", endpoint.URL, "headers", endpoint.Headers)
+		// Debug("Setting headers", "endpoint", endpoint.URL, "headers", endpoint.Headers)
 		for k, v := range endpoint.Headers {
 			req.Header.Set(k, v)
 		}
-	} else {
-		Debug("No headers found", "endpoint", endpoint.URL)
 	}
 
+	// Starting the request
 	resp, err := h.client.Do(req)
 	elapsed := time.Since(start)
 

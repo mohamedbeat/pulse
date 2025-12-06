@@ -5,14 +5,23 @@ globals:
   Type: "http"
 
 endpoints:
-  - name: "OK Service"
-    url: "http://localhost:9000/health"
+  # - name: "OK Service"
+  #   url: "http://localhost:9000/health"
+  #   method: "GET"
+  #   type: "http"
+  #   interval: 3s
+  #   timeout: 1s
+  #   headers:
+  #     Idk: "Bearer your-token-here"
+
+  - name: "Failing endpoint"
+    url: "http://localhost:9000/fail"
     method: "GET"
     type: "http"
     interval: 3s
     timeout: 1s
-    headers:
-      Idk: "Bearer your-token-here"
+    retry: 3
+   
 
   # - name: "slow service"
   #   url: "http://localhost:9000/slow"

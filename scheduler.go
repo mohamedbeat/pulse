@@ -8,7 +8,7 @@ import (
 
 type Scheduler struct {
 	endpoints []Endpoint
-	checkers  map[string]Checker // "http" → HTTPChecker, etc.
+	checkers  map[string]Checker // "HTTP" → HTTPChecker, etc.
 	results   chan Result
 	stop      chan struct{}
 }
@@ -56,7 +56,22 @@ func (s *Scheduler) runEndpoint(ep Endpoint) {
 				}
 				continue
 			}
+
 			res := checker.Check(context.Background(), ep)
+
+			// check results for retry
+			if res.Status != StatusUp && ep.RetryCounter > 0 {
+				Warn("Bad result", res)
+				Warn("Retrying")
+				ep.LastResult = &res
+				ep.RetryCounter -= 1
+				continue
+			}
+
+			// Resetting RetryCounter and LastResult
+			ep.RetryCounter = ep.Retry
+			ep.LastResult = nil
+
 			s.results <- res
 		case <-s.stop: // in this case we stop
 			return

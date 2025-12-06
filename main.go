@@ -40,7 +40,7 @@ func main() {
 	// Setup graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	// Run a goroutine that will close the results channel when scheduler stops
+	// A goroutine that will close the results channel when scheduler stops
 	// This will break the for-loop below
 	go func() {
 		<-quit // Wait for shutdown signal
@@ -49,7 +49,6 @@ func main() {
 		// Stop the scheduler (this closes s.stop channel)
 		scheduler.Stop()
 
-		// Give a moment for any final results to come through
 		// Wait for all endpoint goroutines to finish
 		time.Sleep(1 * time.Second)
 
@@ -64,7 +63,7 @@ func main() {
 	for result := range scheduler.results {
 		switch result.Status {
 		case StatusDown, StatusUnreachable:
-			Error("",
+			Error("Error",
 				"url", result.URL,
 				"status", result.Status,
 				"status_code", result.StatusCode,
@@ -74,7 +73,7 @@ func main() {
 				"elapsed", result.Elapsed,
 			)
 		case StatusDegraded:
-			Warn("saving_result",
+			Warn("Warning",
 				"url", result.URL,
 				"status", result.Status,
 				"status_code", result.StatusCode,
@@ -95,7 +94,7 @@ func main() {
 			)
 		}
 
-		Info("Shutdown complete")
+		// Info("Shutdown complete")
 
 		// store.Save(result)
 

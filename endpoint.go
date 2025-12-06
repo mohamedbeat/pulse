@@ -50,22 +50,31 @@ func ValidateType(ep *Endpoint) error {
 }
 
 type Endpoint struct {
-	Name     string            `mapstructure:"name" json:"name" yaml:"name"`
-	URL      string            `mapstructure:"url" json:"url" yaml:"url"`
-	Method   string            `mapstructure:"method" json:"method" yaml:"method"`
-	Timeout  time.Duration     `mapstructure:"timeout" json:"timeout" yaml:"timeout"`
-	Interval time.Duration     `mapstructure:"interval" json:"interval" yaml:"interval"`
-	Headers  map[string]string `mapstructure:"headers" json:"headers,omitempty" yaml:"headers,omitempty"`
-	Type     string            `mapstructure:"type" json:"type" yaml:"type"` // http, tcp, dns
+	Name            string            `mapstructure:"name" json:"name" yaml:"name"`
+	URL             string            `mapstructure:"url" json:"url" yaml:"url"`
+	Method          string            `mapstructure:"method" json:"method" yaml:"method"`
+	Timeout         time.Duration     `mapstructure:"timeout" json:"timeout" yaml:"timeout"`
+	Interval        time.Duration     `mapstructure:"interval" json:"interval" yaml:"interval"`
+	Headers         map[string]string `mapstructure:"headers" json:"headers,omitempty" yaml:"headers,omitempty"`
+	Type            string            `mapstructure:"type" json:"type" yaml:"type"` // http, tcp, dns
+	ExpectedStatus  int               `mapstructure:"expected_status" json:"expected_status" yaml:"expected_status"`
+	MustMatchStatus bool              `mapstructure:"must_match_status" json:"must_match_status" yaml:"must_match_status"`
+	BodyContains    string            `mapstructure:"body_contains" json:"body_contains,omitempty" yaml:"body_contains,omitempty"`
+	BodyRegex       string            `mapstructure:"body_regex" json:"body_regex,omitempty" yaml:"body_regex,omitempty"`
+	MaxLatency      time.Duration     `mapstructure:"max_latency" json:"max_latency" yaml:"max_latency"`
+	Retry           int               `mapstructure:"retry" json:"retry" yaml:"retry"`
+	RetryCounter    int               //Retry state counter
+	LastResult      *Result
+}
 
-	// For simple cases (backward compatible)
-	ExpectedStatus  int  `mapstructure:"expected_status" json:"expected_status" yaml:"expected_status"`
-	MustMatchStatus bool `mapstructure:"must_match_status" json:"must_match_status" yaml:"must_match_status"`
-
-	// For advanced cases (nested 'expected' block)
-	BodyContains string        `mapstructure:"body_contains" json:"body_contains,omitempty" yaml:"body_contains,omitempty"`
-	BodyRegex    string        `mapstructure:"body_regex" json:"body_regex,omitempty" yaml:"body_regex,omitempty"`
-	MaxLatency   time.Duration `mapstructure:"max_latency" json:"max_latency" yaml:"max_latency"`
+type Result struct {
+	URL        string    `json:"url" yaml:"url"`
+	Status     string    `json:"status" yaml:"status"` // "up", "degraded", "down", "unreachable"
+	StatusCode int       `json:"status_code" yaml:"status_code"`
+	Timestamp  time.Time `json:"timestamp" yaml:"timestamp"`
+	Elapsed    int       `json:"elapsed_ms" yaml:"elapsed_ms"` // milliseconds
+	Error      string    `json:"error,omitempty" yaml:"error,omitempty"`
+	Message    string    `json:"message,omitempty" yaml:"message,omitempty"`
 }
 
 // Result.Status
@@ -82,13 +91,3 @@ const (
 	UnexpectedBodyMessage       = "UnexpectedBody"
 	UnexpectedLatencyMessage    = "UnexpectedLatency"
 )
-
-type Result struct {
-	URL        string    `json:"url" yaml:"url"`
-	Status     string    `json:"status" yaml:"status"` // "up", "degraded", "down", "unreachable"
-	StatusCode int       `json:"status_code" yaml:"status_code"`
-	Timestamp  time.Time `json:"timestamp" yaml:"timestamp"`
-	Elapsed    int       `json:"elapsed_ms" yaml:"elapsed_ms"` // milliseconds
-	Error      string    `json:"error,omitempty" yaml:"error,omitempty"`
-	Message    string    `json:"message,omitempty" yaml:"message,omitempty"`
-}
