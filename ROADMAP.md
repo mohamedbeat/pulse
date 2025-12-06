@@ -31,13 +31,13 @@
 - [x] Goroutine-based concurrent checks (one per endpoint)
 - [x] `time.Ticker` for repeating checks per endpoint interval
 - [x] Buffered channel-based result aggregation
-- [ ] Graceful shutdown support (`stop` channel)
+- [x] Graceful shutdown support (`stop` channel)
 
 ### Result Handling
 - [x] Structured `Result` type (status, latency, timestamp, error, message)
 - [x] Status types: `up`, `down`, `unreachable`, `degraded`
 - [ ] In-memory storage (slice/map)
-- [ ] Basic error recovery (retry once on failure)
+- [x] Basic error recovery (retry once on failure)
 
 ✅ **Phase 1 Status**: Core functionality complete. CLI tool monitors endpoints indefinitely and logs status.
 
@@ -73,7 +73,7 @@
 - [ ] Downtime duration tracking
 
 ### Alerting
-- [ ] Thresholds (e.g., `3 consecutive failures`)
+- [-] Thresholds (e.g., `3 consecutive failures`)
 - [ ] Recovery detection
 - [ ] Console alerts (structured logging exists)
 - [ ] Email (SMTP) alerts
@@ -188,6 +188,7 @@
 - Max latency threshold detection
 - Structured JSON logging
 - Buffered result channels
+- Retry mechanism
 
 ### 🚧 In Progress / Partially Complete
 - Response body matching (fields defined, implementation pending)
