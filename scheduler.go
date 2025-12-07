@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/mohamedbeat/pulse/common"
 )
 
 type Scheduler struct {
-	endpoints []Endpoint
+	endpoints []common.Endpoint
 	checkers  map[string]Checker // "HTTP" → HTTPChecker, etc.
-	results   chan Result
+	results   chan common.Result
 	stop      chan struct{}
 }
 
@@ -31,7 +33,7 @@ func (s *Scheduler) Start() {
 	}
 }
 
-func (s *Scheduler) runEndpoint(ep Endpoint) {
+func (s *Scheduler) runEndpoint(ep common.Endpoint) {
 	ticker := time.NewTicker(ep.Interval)
 	defer ticker.Stop()
 
@@ -46,13 +48,17 @@ func (s *Scheduler) runEndpoint(ep Endpoint) {
 					"type", ep.Type,
 					"message", "No checker registered for endpoint type, skipping check",
 				)
+
+				messages := make([]string, 0)
+				messages = append(messages, fmt.Sprintf("Checker for type %q not found", ep.Type))
+
 				// Send an error result to maintain consistency
-				s.results <- Result{
+				s.results <- common.Result{
 					URL:       ep.URL,
-					Status:    StatusUnreachable,
+					Status:    common.StatusUnreachable,
 					Timestamp: time.Now(),
 					Error:     "no checker registered for type",
-					Message:   fmt.Sprintf("Checker for type %q not found", ep.Type),
+					Messages:  messages,
 				}
 				continue
 			}
@@ -60,7 +66,7 @@ func (s *Scheduler) runEndpoint(ep Endpoint) {
 			res := checker.Check(context.Background(), ep)
 
 			// check results for retry
-			if res.Status != StatusUp && ep.RetryCounter > 0 {
+			if res.Status != common.StatusUp && ep.RetryCounter > 0 {
 				Warn("Bad result", res)
 				Warn("Retrying")
 				ep.LastResult = &res

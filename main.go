@@ -1,10 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/mohamedbeat/pulse/common"
+	"github.com/mohamedbeat/pulse/httpchecker"
 )
 
 func main() {
@@ -21,7 +25,7 @@ func main() {
 	Debug("Globals", "Globals", config.Globals)
 	Debug("Config", "config", config)
 
-	httpChecker := NewHTTPChecker()
+	httpChecker := httpchecker.NewHTTPChecker()
 
 	// Buffer size: at least 10, or 2x the number of endpoints (whichever is larger)
 	// This handles bursts when multiple endpoints complete checks simultaneously
@@ -31,9 +35,9 @@ func main() {
 	scheduler := Scheduler{
 		endpoints: config.Endpoints,
 		checkers: map[string]Checker{
-			HTTPType: httpChecker,
+			common.HTTPType: httpChecker,
 		},
-		results: make(chan Result, bufferSize),
+		results: make(chan common.Result, bufferSize),
 		stop:    make(chan struct{}),
 	}
 
@@ -61,25 +65,26 @@ func main() {
 
 	//Getting scheduler results
 	for result := range scheduler.results {
+		fmt.Println("messages", result.Messages)
 		switch result.Status {
-		case StatusDown, StatusUnreachable:
+		case common.StatusDown, common.StatusUnreachable:
 			Error("Error",
 				"url", result.URL,
 				"status", result.Status,
 				"status_code", result.StatusCode,
 				"timestamp", result.Timestamp,
 				"error", result.Error,
-				"message", result.Message,
+				"messages", result.Messages,
 				"elapsed", result.Elapsed,
 			)
-		case StatusDegraded:
+		case common.StatusDegraded:
 			Warn("Warning",
 				"url", result.URL,
 				"status", result.Status,
 				"status_code", result.StatusCode,
 				"timestamp", result.Timestamp,
 				"error", result.Error,
-				"message", result.Message,
+				"messages", result.Messages,
 				"elapsed", result.Elapsed,
 			)
 		default:
@@ -89,7 +94,7 @@ func main() {
 				"status_code", result.StatusCode,
 				"timestamp", result.Timestamp,
 				"error", result.Error,
-				"message", result.Message,
+				"messages", result.Messages,
 				"elapsed", result.Elapsed,
 			)
 		}

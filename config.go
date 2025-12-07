@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mohamedbeat/pulse/common"
 	"github.com/spf13/viper"
 )
 
@@ -20,7 +21,7 @@ type Globals struct {
 
 type Config struct {
 	Globals   Globals
-	Endpoints []Endpoint `mapstructure:"endpoints"`
+	Endpoints []common.Endpoint `mapstructure:"endpoints"`
 }
 
 // ParseFlags parses command-line flags and returns the config file path.
@@ -138,12 +139,12 @@ func loadConfigFile() (*Config, error) {
 // validateGlobals validates the global configuration settings.
 func validateGlobals(cfg *Config) error {
 	cfg.Globals.Type = strings.ToUpper(cfg.Globals.Type)
-	if cfg.Globals.Type == "" || !validTypes[cfg.Globals.Type] {
+	if cfg.Globals.Type == "" || !common.ValidTypes[cfg.Globals.Type] {
 		return fmt.Errorf("invalid type in globals: %q", cfg.Globals.Type)
 	}
 
-	if cfg.Globals.Type == HTTPType {
-		if err := ValidateMethod(cfg.Globals.Method); err != nil {
+	if cfg.Globals.Type == common.HTTPType {
+		if err := common.ValidateMethod(cfg.Globals.Method); err != nil {
 			return fmt.Errorf("invalid provided method in globals: %w", err)
 		}
 	}
@@ -192,13 +193,13 @@ func validateEndpoints(cfg *Config) error {
 		ep := &cfg.Endpoints[i]
 
 		// Validate endpoint type
-		if err := ValidateType(ep); err != nil {
+		if err := common.ValidateType(ep); err != nil {
 			return fmt.Errorf("invalid provided type for endpoint %d: %w", i, err)
 		}
 
 		// Validate HTTP-specific fields
-		if ep.Type == HTTPType {
-			if err := ValidateMethod(ep.Method); err != nil {
+		if ep.Type == common.HTTPType {
+			if err := common.ValidateMethod(ep.Method); err != nil {
 				return fmt.Errorf("invalid provided method for endpoint %d: %w", i, err)
 			}
 			// validate URL

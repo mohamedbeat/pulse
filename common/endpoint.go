@@ -1,4 +1,4 @@
-package main
+package common
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ const (
 	MethodDelete = "DELETE"
 )
 
-var validMethods = map[string]bool{
+var ValidMethods = map[string]bool{
 	MethodGet:    true,
 	MethodPost:   true,
 	MethodPatch:  true,
@@ -25,7 +25,7 @@ var validMethods = map[string]bool{
 // ValidateMethod checks whether m is a valid HTTP method.
 // It returns nil if valid, or an error otherwise.
 func ValidateMethod(m string) error {
-	if m == "" || !validMethods[strings.ToUpper(m)] {
+	if m == "" || !ValidMethods[strings.ToUpper(m)] {
 		return fmt.Errorf("invalid HTTP method: %q", m)
 	}
 	return nil
@@ -35,7 +35,7 @@ const (
 	HTTPType = "HTTP"
 )
 
-var validTypes = map[string]bool{
+var ValidTypes = map[string]bool{
 	HTTPType: true,
 }
 
@@ -43,7 +43,7 @@ var validTypes = map[string]bool{
 // It returns nil if valid, or an error otherwise.
 func ValidateType(ep *Endpoint) error {
 	ep.Type = strings.ToUpper(ep.Type)
-	if ep.Type == "" || !validTypes[ep.Type] {
+	if ep.Type == "" || !ValidTypes[ep.Type] {
 		return fmt.Errorf("invalid type: %q", ep.Type)
 	}
 	return nil
@@ -74,7 +74,8 @@ type Result struct {
 	Timestamp  time.Time `json:"timestamp" yaml:"timestamp"`
 	Elapsed    int       `json:"elapsed_ms" yaml:"elapsed_ms"` // milliseconds
 	Error      string    `json:"error,omitempty" yaml:"error,omitempty"`
-	Message    string    `json:"message,omitempty" yaml:"message,omitempty"`
+	// Message    string    `json:"message,omitempty" yaml:"message,omitempty"`
+	Messages []string `json:"messages,omitempty" yaml:"messages,omitempty"`
 }
 
 // Result.Status

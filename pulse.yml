@@ -5,6 +5,16 @@ globals:
   Type: "http"
 
 endpoints:
+  - name: "latency"
+    url: "http://localhost:9000/latency"
+    method: "GET"
+    type: "http"
+    interval: 3s
+    timeout: 1s
+    expected_status: 201
+    must_match_status: true
+    max_latency: 50ms
+
   # - name: "OK Service"
   #   url: "http://localhost:9000/health"
   #   method: "GET"
@@ -14,13 +24,13 @@ endpoints:
   #   headers:
   #     Idk: "Bearer your-token-here"
 
-  - name: "Failing endpoint"
-    url: "http://localhost:9000/fail"
-    method: "GET"
-    type: "http"
-    interval: 3s
-    timeout: 1s
-    retry: 3
+  # - name: "Failing endpoint"
+  #   url: "http://localhost:9000/fail"
+  #   method: "GET"
+  #   type: "http"
+  #   interval: 3s
+  #   timeout: 1s
+  #   retry: 3
    
 
   # - name: "slow service"
