@@ -14,6 +14,12 @@ import (
 func main() {
 	Info("Initializing ...")
 
+	envs, err := LoadEnv()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(envs)
+
 	configPath := ParseFlags()
 	Info("configFile path", "path", configPath)
 

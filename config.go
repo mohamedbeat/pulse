@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -22,6 +23,38 @@ type Globals struct {
 type Config struct {
 	Globals   Globals
 	Endpoints []common.Endpoint `mapstructure:"endpoints"`
+}
+type Env struct {
+	Dbuser string
+	Dbpass string
+	Dbname string
+	Dbport int
+	Dbhost string
+}
+
+func (e *Env) validateEnvs() error {
+	if e.Dbuser == "" {
+		return errors.New("db user must not be empty")
+	}
+
+	if e.Dbpass == "" {
+		return errors.New("db pass must not be empty")
+	}
+
+	if e.Dbname == "" {
+		return errors.New("db name must not be empty")
+	}
+
+	if e.Dbhost == "" {
+		return errors.New("db host must not be empty")
+	}
+
+	if e.Dbport == 0 {
+		return errors.New("db port must not be empty")
+	}
+
+	return nil
+
 }
 
 // ParseFlags parses command-line flags and returns the config file path.
@@ -255,4 +288,22 @@ func LoadConfig(configPath string) (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func LoadEnv() (Env, error) {
+	var env Env
+	viper.AutomaticEnv()
+	viper.SetConfigFile(".env")
+	viper.ReadInConfig() // This loads the .env file
+	env.Dbhost = viper.GetString("DB_HOST")
+	env.Dbname = viper.GetString("DB_NAME")
+	env.Dbuser = viper.GetString("DB_USER")
+	env.Dbpass = viper.GetString("DB_PASS")
+	env.Dbport = viper.GetInt("DB_PORT")
+	err := env.validateEnvs()
+	if err != nil {
+		return Env{}, err
+
+	}
+	return env, nil
 }
