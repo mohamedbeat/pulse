@@ -61,6 +61,7 @@ func (h *HTTPChecker) Check(ctx context.Context, endpoint common.Endpoint) commo
 	req, err := http.NewRequestWithContext(ctx, endpoint.Method, endpoint.URL, nil)
 
 	result := common.Result{
+		Endpoint: &endpoint,
 		URL:      endpoint.URL,
 		Messages: make([]string, 0),
 	}
@@ -85,7 +86,7 @@ func (h *HTTPChecker) Check(ctx context.Context, endpoint common.Endpoint) commo
 	resp, err := h.client.Do(req)
 	elapsed := time.Since(start)
 
-	result.Elapsed = int(elapsed.Milliseconds())
+	result.Elapsed = elapsed
 	result.Timestamp = time.Now()
 
 	if err != nil {

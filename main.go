@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -9,15 +10,31 @@ import (
 
 	"github.com/mohamedbeat/pulse/common"
 	"github.com/mohamedbeat/pulse/httpchecker"
+	"github.com/mohamedbeat/pulse/store"
+	"github.com/mohamedbeat/pulse/store/repository"
 )
 
 func main() {
+	ctx := context.Background()
 	Info("Initializing ...")
-
 	envs, err := LoadEnv()
 	if err != nil {
 		panic(err)
 	}
+
+	err = store.Connect(envs.Dbhost, envs.Dbport, envs.Dbuser, envs.Dbpass, envs.Dbname)
+	if err != nil {
+		panic(err)
+	}
+	db := store.GetDBConnection()
+	if db == nil {
+		panic("Nil db connection")
+	}
+
+	// Initializing repository
+	HTTPCheckRepo := repository.NewHTTPCheckRepository(db)
+	fmt.Println(HTTPCheckRepo)
+
 	fmt.Println(envs)
 
 	configPath := ParseFlags()
@@ -72,6 +89,30 @@ func main() {
 	//Getting scheduler results
 	for result := range scheduler.results {
 		fmt.Println("messages", result.Messages)
+		HTTPCheck := store.HTTPCheck{
+			Name:            result.Endpoint.Name,
+			Method:          result.Endpoint.Method,
+			URL:             result.Endpoint.URL,
+			Interval:        result.Endpoint.Interval,
+			Timeout:         result.Endpoint.Timeout,
+			ExpectedStatus:  result.Endpoint.ExpectedStatus,
+			Headers:         result.Endpoint.Headers,
+			MustMatchStatus: result.Endpoint.MustMatchStatus,
+
+			//result related
+			Status:       result.Status,
+			StatusCode:   result.StatusCode,
+			ErrorMessage: result.Error,
+			Duration:     time.Duration(result.Elapsed),
+			CheckedAt:    result.Timestamp,
+		}
+		fmt.Println("duration: ", HTTPCheck.Duration.Microseconds())
+		err := HTTPCheckRepo.Save(ctx, &HTTPCheck)
+		if err != nil {
+			fmt.Println(err)
+
+		}
+
 		switch result.Status {
 		case common.StatusDown, common.StatusUnreachable:
 			Error("Error",

@@ -23,7 +23,7 @@ endpoints:
   #   timeout: 1s
   #   headers:
   #     Idk: "Bearer your-token-here"
-
+  #
   # - name: "Failing endpoint"
   #   url: "http://localhost:9000/fail"
   #   method: "GET"

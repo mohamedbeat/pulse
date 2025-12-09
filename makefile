@@ -1,3 +1,9 @@
+# Load .env file if it exists
+ifneq (,$(wildcard ./.env))
+    include .env
+    export $(shell sed 's/=.*//' ./.env)
+endif
+
 APP_NAME := pulse
 BUILD_DIR := tmp
 
@@ -31,9 +37,9 @@ clean:
 
 # Check if required environment variables are set
 mig-check-env:
-	@if [ -z "$(DB_USER)" ] || [ -z "$(DB_PASSWORD)" ] || [ -z "$(DB_HOST)" ] || [ -z "$(DB_PORT)" ] || [ -z "$(DB_NAME)" ]; then \
+	@if [ -z "$(DB_USER)" ] || [ -z "$(DB_PASS)" ] || [ -z "$(DB_HOST)" ] || [ -z "$(DB_PORT)" ] || [ -z "$(DB_NAME)" ]; then \
 		echo "Error: Missing required database environment variables"; \
-		echo "Please ensure .env file exists with: DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME"; \
+		echo "Please ensure .env file exists with: DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME"; \
 		exit 1; \
 	fi
 	@if [ ! -f .env ]; then \
@@ -42,7 +48,7 @@ mig-check-env:
 	fi
 
 # Run all pending migrations
-mig-up: mig-check-env
+mig-up: 
 	@echo "Running migrations..."
 	@echo "Database: $(DB_HOST):$(DB_PORT)/$(DB_NAME)"
 	@GOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING="$(GOOSE_DBSTRING)" goose -dir $(GOOSE_MIGRATION_DIR) up

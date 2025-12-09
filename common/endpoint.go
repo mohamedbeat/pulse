@@ -68,13 +68,13 @@ type Endpoint struct {
 }
 
 type Result struct {
-	endpoint   *Endpoint
-	URL        string    `json:"url" yaml:"url"`
-	Status     string    `json:"status" yaml:"status"` // "up", "degraded", "down", "unreachable"
-	StatusCode int       `json:"status_code" yaml:"status_code"`
-	Timestamp  time.Time `json:"timestamp" yaml:"timestamp"`
-	Elapsed    int       `json:"elapsed_ms" yaml:"elapsed_ms"` // milliseconds
-	Error      string    `json:"error,omitempty" yaml:"error,omitempty"`
+	Endpoint   *Endpoint
+	URL        string        `json:"url" yaml:"url"`
+	Status     string        `json:"status" yaml:"status"` // "up", "degraded", "down", "unreachable"
+	StatusCode int           `json:"status_code" yaml:"status_code"`
+	Timestamp  time.Time     `json:"timestamp" yaml:"timestamp"`
+	Elapsed    time.Duration `json:"elapsed_ms" yaml:"elapsed_ms"` // milliseconds
+	Error      string        `json:"error,omitempty" yaml:"error,omitempty"`
 	// Message    string    `json:"message,omitempty" yaml:"message,omitempty"`
 	Messages []string `json:"messages,omitempty" yaml:"messages,omitempty"`
 }

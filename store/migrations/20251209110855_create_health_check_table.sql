@@ -1,9 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
 
--- Common check result base table
-
--- HTTP-specific results
 
 CREATE TABLE http_check_results (
     -- Basic endpoint info
@@ -43,18 +40,22 @@ CREATE TABLE http_check_results (
     -- Timestamps
     checked_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
-    -- Indexes for performance
-    INDEX idx_http_check_name (name),
-    INDEX idx_http_check_status (status),
-    INDEX idx_http_check_checked_at (checked_at DESC),
-    INDEX idx_http_check_created_at (created_at DESC)
-);
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+   -- INDEX idx_http_check_name (name),
+   --  INDEX idx_http_check_status (status),
+   --  INDEX idx_http_check_checked_at (checked_at DESC),
+   --  INDEX idx_http_check_created_at (created_at DESC),   
+    );
 
+-- Indexes for performance
+CREATE INDEX idx_http_check_name ON http_check_results (name);
+CREATE INDEX idx_http_check_status ON http_check_results (status);
+CREATE INDEX idx_http_check_checked_at ON http_check_results (checked_at DESC);
+CREATE INDEX idx_http_check_created_at ON http_check_results (created_at DESC);
 
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+    Drop table http_check_results 
 -- +goose StatementEnd
