@@ -68,6 +68,7 @@ type Endpoint struct {
 }
 
 type Result struct {
+	endpoint   *Endpoint
 	URL        string    `json:"url" yaml:"url"`
 	Status     string    `json:"status" yaml:"status"` // "up", "degraded", "down", "unreachable"
 	StatusCode int       `json:"status_code" yaml:"status_code"`
