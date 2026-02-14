@@ -130,22 +130,34 @@ func (r *HTTPCheckRepository) GetActiveEndpoints(ctx context.Context, since time
 // Get endpoint summary (latest status for all endpoints)
 func (r *HTTPCheckRepository) GetSummary(ctx context.Context) ([]*EndpointSummary, error) {
 	// DISTINCT ON requires raw SQL or specific handling
-	query := `
-        SELECT DISTINCT ON (name) 
-            name,
-            url,
-            status,
-            status_code,
-            duration_ms,
-            checked_at,
-            error_message
-        FROM http_check_results 
-        ORDER BY name, checked_at DESC
-    `
+	// query := `
+	//        SELECT DISTINCT ON (name)
+	//            name,
+	//            url,
+	//            status,
+	//            status_code,
+	//            duration_ms,
+	//            checked_at,
+	//            error_message
+	//        FROM http_check_results
+	//        ORDER BY name, checked_at DESC
+	//    `
+	//
+	// var summaries []*EndpointSummary
+	// err := r.db.SelectContext(ctx, &summaries, query)
+	// return summaries, err
+	query, args, err := r.sb.Select("DISTINCT name").
+		From("http_check_results").
+		OrderBy("name, checked_at DESC").ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build query: %w", err)
+	}
 
 	var summaries []*EndpointSummary
-	err := r.db.SelectContext(ctx, &summaries, query)
+	err = r.db.SelectContext(ctx, &summaries, query, args...)
 	return summaries, err
+
 }
 
 // Get endpoint summary with pagination using Squirrel

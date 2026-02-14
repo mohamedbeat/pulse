@@ -40,6 +40,15 @@ func main() {
 	}
 	fmt.Println(r)
 
+	d, err := HTTPCheckRepo.GetSummary(ctx)
+	if err != nil {
+		panic(err)
+	}
+	for _, v := range d {
+		fmt.Println(v)
+
+	}
+
 	configPath := ParseFlags()
 	Info("configFile path", "path", configPath)
 

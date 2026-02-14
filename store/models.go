@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -34,19 +36,40 @@ type HTTPCheck struct {
 	ErrorMessage    string            `db:"error_message"`
 	Duration        time.Duration     `db:"duration_ms"`
 
-	// Timing metrics
-	DNSDuration       time.Duration `db:"dns_duration_ms"`
-	TLSDuration       time.Duration `db:"tls_duration_ms"`
-	ConnectDuration   time.Duration `db:"connect_duration_ms"`
-	FirstByteDuration time.Duration `db:"first_byte_duration_ms"`
-	DownloadDuration  time.Duration `db:"download_duration_ms"`
-	SSLValid          bool          `db:"ssl_valid"`
-	SSLExpiryDays     int           `db:"ssl_expiry_days"`
+	// // Timing metrics
+	// DNSDuration       time.Duration `db:"dns_duration_ms"`
+	// TLSDuration       time.Duration `db:"tls_duration_ms"`
+	// ConnectDuration   time.Duration `db:"connect_duration_ms"`
+	// FirstByteDuration time.Duration `db:"first_byte_duration_ms"`
+	// DownloadDuration  time.Duration `db:"download_duration_ms"`
+	// SSLValid          bool          `db:"ssl_valid"`
+	// SSLExpiryDays     int           `db:"ssl_expiry_days"`
 
 	// Timestamps
 	CheckedAt time.Time `db:"checked_at"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func (h *HTTPCheck) String() string {
+	var sb strings.Builder
+
+	// Get the reflect value of the struct (dereference the pointer)
+	v := reflect.ValueOf(h).Elem()
+	t := v.Type() // Get type from the value
+
+	// Loop through all fields
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldName := t.Field(i).Name
+
+		sb.WriteString(fmt.Sprintf("%s: %v,\n ",
+			fieldName,
+			field.Interface(),
+		))
+	}
+
+	return sb.String()
 }
 
 // For database operations (uses seconds/milliseconds)
@@ -89,69 +112,69 @@ type DBHTTPCheck struct {
 // Convert to/from DB model
 func (h *HTTPCheck) ToDB() *DBHTTPCheck {
 	return &DBHTTPCheck{
-		ID:                  h.ID,
-		Name:                h.Name,
-		URL:                 h.URL,
-		Method:              h.Method,
-		IntervalSeconds:     int64(h.Interval.Seconds()),
-		TimeoutSeconds:      int64(h.Timeout.Seconds()),
-		ExpectedStatus:      h.ExpectedStatus,
-		Headers:             JSONMap(h.Headers),
-		Body:                h.Body,
-		MustMatchStatus:     h.MustMatchStatus,
-		BodyContains:        h.BodyContains,
-		BodyRegex:           h.BodyRegex,
-		Status:              h.Status,
-		StatusCode:          h.StatusCode,
-		ContentLength:       h.ContentLength,
-		ResponseHeaders:     JSONMap(h.ResponseHeaders),
-		ResponseBody:        h.ResponseBody,
-		ErrorMessage:        h.ErrorMessage,
-		DurationMS:          h.Duration.Milliseconds(),
-		DNSDurationMS:       h.DNSDuration.Milliseconds(),
-		TLSDurationMS:       h.TLSDuration.Milliseconds(),
-		ConnectDurationMS:   h.ConnectDuration.Milliseconds(),
-		FirstByteDurationMS: h.FirstByteDuration.Milliseconds(),
-		DownloadDurationMS:  h.DownloadDuration.Milliseconds(),
-		SSLValid:            h.SSLValid,
-		SSLExpiryDays:       h.SSLExpiryDays,
-		CheckedAt:           h.CheckedAt,
-		CreatedAt:           h.CreatedAt,
-		UpdatedAt:           h.UpdatedAt,
+		ID:              h.ID,
+		Name:            h.Name,
+		URL:             h.URL,
+		Method:          h.Method,
+		IntervalSeconds: int64(h.Interval.Seconds()),
+		TimeoutSeconds:  int64(h.Timeout.Seconds()),
+		ExpectedStatus:  h.ExpectedStatus,
+		Headers:         JSONMap(h.Headers),
+		Body:            h.Body,
+		MustMatchStatus: h.MustMatchStatus,
+		BodyContains:    h.BodyContains,
+		BodyRegex:       h.BodyRegex,
+		Status:          h.Status,
+		StatusCode:      h.StatusCode,
+		ContentLength:   h.ContentLength,
+		ResponseHeaders: JSONMap(h.ResponseHeaders),
+		ResponseBody:    h.ResponseBody,
+		ErrorMessage:    h.ErrorMessage,
+		DurationMS:      h.Duration.Milliseconds(),
+		// DNSDurationMS:       h.DNSDuration.Milliseconds(),
+		// TLSDurationMS:       h.TLSDuration.Milliseconds(),
+		// ConnectDurationMS:   h.ConnectDuration.Milliseconds(),
+		// FirstByteDurationMS: h.FirstByteDuration.Milliseconds(),
+		// DownloadDurationMS:  h.DownloadDuration.Milliseconds(),
+		// SSLValid:            h.SSLValid,
+		// SSLExpiryDays:       h.SSLExpiryDays,
+		CheckedAt: h.CheckedAt,
+		CreatedAt: h.CreatedAt,
+		UpdatedAt: h.UpdatedAt,
 	}
 }
 
 func (db *DBHTTPCheck) ToDomain() *HTTPCheck {
 	return &HTTPCheck{
-		ID:                db.ID,
-		Name:              db.Name,
-		URL:               db.URL,
-		Method:            db.Method,
-		Interval:          time.Duration(db.IntervalSeconds) * time.Second,
-		Timeout:           time.Duration(db.TimeoutSeconds) * time.Second,
-		ExpectedStatus:    db.ExpectedStatus,
-		Headers:           map[string]string(db.Headers),
-		Body:              db.Body,
-		MustMatchStatus:   db.MustMatchStatus,
-		BodyContains:      db.BodyContains,
-		BodyRegex:         db.BodyRegex,
-		Status:            db.Status,
-		StatusCode:        db.StatusCode,
-		ContentLength:     db.ContentLength,
-		ResponseHeaders:   map[string]string(db.ResponseHeaders),
-		ResponseBody:      db.ResponseBody,
-		ErrorMessage:      db.ErrorMessage,
-		Duration:          time.Duration(db.DurationMS) * time.Millisecond,
-		DNSDuration:       time.Duration(db.DNSDurationMS) * time.Millisecond,
-		TLSDuration:       time.Duration(db.TLSDurationMS) * time.Millisecond,
-		ConnectDuration:   time.Duration(db.ConnectDurationMS) * time.Millisecond,
-		FirstByteDuration: time.Duration(db.FirstByteDurationMS) * time.Millisecond,
-		DownloadDuration:  time.Duration(db.DownloadDurationMS) * time.Millisecond,
-		SSLValid:          db.SSLValid,
-		SSLExpiryDays:     db.SSLExpiryDays,
-		CheckedAt:         db.CheckedAt,
-		CreatedAt:         db.CreatedAt,
-		UpdatedAt:         db.UpdatedAt,
+		ID:              db.ID,
+		Name:            db.Name,
+		URL:             db.URL,
+		Method:          db.Method,
+		Interval:        time.Duration(db.IntervalSeconds) * time.Second,
+		Timeout:         time.Duration(db.TimeoutSeconds) * time.Second,
+		ExpectedStatus:  db.ExpectedStatus,
+		Headers:         map[string]string(db.Headers),
+		Body:            db.Body,
+		MustMatchStatus: db.MustMatchStatus,
+		BodyContains:    db.BodyContains,
+		BodyRegex:       db.BodyRegex,
+		Status:          db.Status,
+		StatusCode:      db.StatusCode,
+		ContentLength:   db.ContentLength,
+		ResponseHeaders: map[string]string(db.ResponseHeaders),
+		ResponseBody:    db.ResponseBody,
+		ErrorMessage:    db.ErrorMessage,
+		Duration:        time.Duration(db.DurationMS) * time.Millisecond,
+		// DNSDuration:       time.Duration(db.DNSDurationMS) * time.Millisecond,
+		// TLSDuration:       time.Duration(db.TLSDurationMS) * time.Millisecond,
+		// ConnectDuration:   time.Duration(db.ConnectDurationMS) * time.Millisecond,
+		// FirstByteDuration: time.Duration(db.FirstByteDurationMS) * time.Millisecond,
+		// DownloadDuration:  time.Duration(db.DownloadDurationMS) * time.Millisecond,
+		// SSLValid:          db.SSLValid,
+		// SSLExpiryDays:     db.SSLExpiryDays,
+		CheckedAt: db.CheckedAt,
+		CreatedAt: db.CreatedAt,
+		UpdatedAt: db.UpdatedAt,
 	}
 }
 
@@ -160,7 +183,7 @@ func (db *DBHTTPCheck) ToDomain() *HTTPCheck {
 type JSONMap map[string]string
 
 // Scan implements the sql.Scanner interface
-func (m *JSONMap) Scan(value interface{}) error {
+func (m *JSONMap) Scan(value any) error {
 	if value == nil {
 		*m = make(JSONMap)
 		return nil
