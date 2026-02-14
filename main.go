@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}
 
-	err = store.Connect(envs.Dbhost, envs.Dbport, envs.Dbuser, envs.Dbpass, envs.Dbname)
+	err = store.Connect("./db.sqlite")
 	if err != nil {
 		panic(err)
 	}
@@ -33,9 +33,12 @@ func main() {
 
 	// Initializing repository
 	HTTPCheckRepo := repository.NewHTTPCheckRepository(db)
-	fmt.Println(HTTPCheckRepo)
-
 	fmt.Println(envs)
+	r, err := HTTPCheckRepo.GetLatest(ctx, "latency")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(r)
 
 	configPath := ParseFlags()
 	Info("configFile path", "path", configPath)

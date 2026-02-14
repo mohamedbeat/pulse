@@ -8,12 +8,13 @@ APP_NAME := pulse
 BUILD_DIR := tmp
 
 # Migration configuration
-GOOSE_DRIVER ?= postgres
+GOOSE_DRIVER ?= sqlite 
 GOOSE_MIGRATION_DIR ?= ./store/migrations
 
 # Build PostgreSQL connection string
 # Format: postgres://user:password@host:port/dbname?sslmode=disable
-GOOSE_DBSTRING ?= postgres://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
+# GOOSE_DBSTRING ?= postgres://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
+GOOSE_DBSTRING ?= $(DB_STRING)
 
 .PHONY: build run run-mock clean
 
@@ -37,9 +38,9 @@ clean:
 
 # Check if required environment variables are set
 mig-check-env:
-	@if [ -z "$(DB_USER)" ] || [ -z "$(DB_PASS)" ] || [ -z "$(DB_HOST)" ] || [ -z "$(DB_PORT)" ] || [ -z "$(DB_NAME)" ]; then \
+	@if [ -z "$(DB_STRING)" ] ]; then \
 		echo "Error: Missing required database environment variables"; \
-		echo "Please ensure .env file exists with: DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME"; \
+		echo "Please ensure .env file exists with: DB_STRING"; \
 		exit 1; \
 	fi
 	@if [ ! -f .env ]; then \
@@ -50,7 +51,7 @@ mig-check-env:
 # Run all pending migrations
 mig-up: 
 	@echo "Running migrations..."
-	@echo "Database: $(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+	@echo "Database: $(DB_STRING)"
 	@GOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING="$(GOOSE_DBSTRING)" goose -dir $(GOOSE_MIGRATION_DIR) up
 	@echo "Migrations completed!"
 

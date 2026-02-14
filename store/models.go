@@ -156,23 +156,33 @@ func (db *DBHTTPCheck) ToDomain() *HTTPCheck {
 }
 
 // JSONMap for JSONB fields
+// JSONMap is a custom type that handles JSON conversion
 type JSONMap map[string]string
 
-func (jm JSONMap) Value() (driver.Value, error) {
-	if len(jm) == 0 {
-		return "{}", nil
-	}
-	return json.Marshal(jm)
-}
-
-func (jm *JSONMap) Scan(value any) error {
+// Scan implements the sql.Scanner interface
+func (m *JSONMap) Scan(value interface{}) error {
 	if value == nil {
-		*jm = JSONMap{}
+		*m = make(JSONMap)
 		return nil
 	}
-	b, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("unsupported type for JSONMap: %T", value)
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return fmt.Errorf("failed to unmarshal JSON value: %v", value)
 	}
-	return json.Unmarshal(b, jm)
+
+	return json.Unmarshal(bytes, m)
+}
+
+// Value implements the driver.Valuer interface
+func (m JSONMap) Value() (driver.Value, error) {
+	if m == nil {
+		return []byte("{}"), nil
+	}
+	return json.Marshal(m)
 }
